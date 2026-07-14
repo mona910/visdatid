@@ -1,0 +1,213 @@
+---
+title: "Memulai Diagnosis Kualitas Data dengan visdatid"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Memulai Diagnosis Kualitas Data dengan visdatid}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.width = 7,
+  fig.height = 4.5
+)
+
+library(visdatid)
+```
+
+## Pendahuluan
+
+`visdatid` merupakan package R untuk diagnosis awal kualitas data melalui
+visualisasi missing value, distribusi variabel numerik, hubungan
+antarvariabel, serta laporan masalah dan rekomendasi prapemrosesan.
+
+Package ini dikembangkan sebagai karya modifikasi dan pengembangan dari
+package `visdat`. Konsep visualisasi data awal dari `visdat` diperluas
+dengan diagnosis statistik dan rekomendasi yang dapat ditindaklanjuti.
+
+## Fungsi utama
+
+Empat fungsi utama dalam `visdatid` adalah:
+
+1. `vis_miss_adv()` untuk diagnosis missing value;
+2. `vis_cor_adv()` untuk diagnosis korelasi;
+3. `vis_distribution()` untuk diagnosis distribusi numerik;
+4. `quality_report()` untuk laporan kualitas data.
+
+Dua fungsi pertama merupakan pengembangan konsep fungsi yang telah tersedia
+pada `visdat`, sedangkan dua fungsi terakhir merupakan fungsi baru.
+
+| Fungsi | Status | Tujuan |
+|---|---|---|
+| `vis_miss_adv()` | Modifikasi konsep `visdat::vis_miss()` | Visualisasi missing dengan ambang, ringkasan kelompok, dan sampling sistematis |
+| `vis_cor_adv()` | Modifikasi konsep `visdat::vis_cor()` | Korelasi dengan signifikansi, adjusted p-value, dan penanda korelasi kuat |
+| `vis_distribution()` | Fungsi baru | Diagnosis skewness, kurtosis, dan pencilan |
+| `quality_report()` | Fungsi baru | Tabel masalah, tingkat keparahan, dan rekomendasi |
+
+## Data contoh
+
+Data berikut sengaja memuat beberapa masalah kualitas data, yaitu ID
+duplikat, nilai ekstrem, string kosong, missing value, dan variabel konstan.
+
+```{r example-data}
+data_contoh <- data.frame(
+  id = c(1, 2, 2, 4, 5, 6, 7),
+  score = c(1, 2, 2, 4, 5, 6, 100),
+  group = c("A", "B", "B", "", NA, "A", "B"),
+  constant = rep("yes", 7)
+)
+
+data_contoh
+```
+
+## Laporan kualitas data
+
+`quality_report()` menghasilkan tabel masalah kualitas data beserta tingkat
+keparahan dan rekomendasi tindak lanjut.
+
+```{r quality-report}
+laporan <- quality_report(
+  data_contoh,
+  id_col = "id"
+)
+
+laporan
+```
+
+Masalah yang dapat terdeteksi antara lain:
+
+- baris duplikat;
+- ID duplikat;
+- missing value;
+- string kosong;
+- variabel konstan;
+- kemencengan distribusi;
+- pencilan berdasarkan metode IQR.
+
+Rekomendasi yang diberikan tidak melakukan pembersihan secara otomatis.
+Keputusan penanganan tetap perlu mempertimbangkan konteks dan tujuan analisis.
+
+## Diagnosis distribusi numerik
+
+### Ringkasan seluruh variabel numerik
+
+```{r distribution-overview}
+vis_distribution(mtcars)
+```
+
+Nilai skewness positif menunjukkan kemencengan ke kanan, sedangkan nilai
+negatif menunjukkan kemencengan ke kiri.
+
+### Diagnosis satu variabel
+
+```{r distribution-detail}
+vis_distribution(
+  mtcars,
+  variable = "mpg",
+  bins = 12
+)
+```
+
+Visualisasi detail menampilkan histogram, mean, median, skewness, jumlah
+pencilan, dan rekomendasi eksploratif.
+
+## Diagnosis missing value
+
+### Pola missing setiap sel
+
+```{r missing-cell}
+vis_miss_adv(
+  airquality,
+  threshold = 10
+)
+```
+
+Tanda bintang menunjukkan variabel dengan persentase missing yang mencapai
+atau melebihi ambang yang ditentukan.
+
+### Missing value berdasarkan kelompok
+
+```{r missing-group}
+vis_miss_adv(
+  airquality,
+  group = "Month",
+  threshold = 15
+)
+```
+
+Mode kelompok digunakan untuk membandingkan persentase missing setiap
+variabel pada kelompok yang berbeda.
+
+## Diagnosis korelasi
+
+```{r correlation}
+vis_cor_adv(
+  mtcars,
+  method = "auto",
+  strong_threshold = 0.7
+)
+```
+
+`method = "auto"` memilih Pearson atau Spearman berdasarkan diagnosis awal
+kemencengan dan pencilan.
+
+Tanda bintang menunjukkan hubungan dengan adjusted p-value di bawah tingkat
+signifikansi, sedangkan garis tebal menunjukkan korelasi yang mencapai
+ambang korelasi kuat.
+
+## Mengakses hasil di balik visualisasi
+
+Objek hasil visualisasi tetap merupakan objek `ggplot`, tetapi juga menyimpan
+tabel diagnosis sebagai atribut.
+
+```{r plot-attributes}
+plot_missing <- vis_miss_adv(
+  airquality,
+  threshold = 10
+)
+
+head(
+  attr(
+    plot_missing,
+    "missing_summary"
+  )
+)
+```
+
+Tabel korelasi juga dapat diperoleh melalui atribut berikut.
+
+```{r correlation-attributes}
+plot_correlation <- vis_cor_adv(
+  mtcars,
+  method = "pearson"
+)
+
+head(
+  attr(
+    plot_correlation,
+    "correlation_table"
+  )
+)
+```
+
+## Alur penggunaan yang disarankan
+
+Alur diagnosis data dengan `visdatid` adalah:
+
+1. memeriksa missing value menggunakan `vis_miss_adv()`;
+2. memeriksa distribusi numerik menggunakan `vis_distribution()`;
+3. memeriksa hubungan antarvariabel menggunakan `vis_cor_adv()`;
+4. merangkum seluruh masalah menggunakan `quality_report()`;
+5. menentukan tindakan prapemrosesan berdasarkan konteks analisis.
+
+## Atribusi
+
+`visdatid` merupakan karya modifikasi dan pengembangan dari package
+[`visdat`](https://github.com/ropensci/visdat).
+
+Package asli dikembangkan oleh Nicholas Tierney dan para kontributornya.
+`visdatid` mempertahankan atribusi kepada package asli dan memperluas konsep
+visualisasi awal dengan diagnosis statistik serta rekomendasi kualitas data.

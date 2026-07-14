@@ -1,0 +1,61 @@
+Package: visdatid
+Title: Visual Data Quality Diagnostics and Exploration
+Version: 0.1.0
+Authors@R: c(
+    person(
+      given = "Ermadina",
+      family = "Mutiara",
+      email = "24611012@students.ac.id",
+      role = "aut"
+    ),
+    person(
+      given = "M. Arif",
+      family = "Al-Ghifary",
+      email = "24611049@students.ac.id",
+      role = "aut"
+    ),
+    person(
+      given = "Syifa",
+      family = "Nabila Motumona",
+      email = "24611064@students.ac.id",
+      role = c("aut", "cre")
+    ),
+    person(
+      given = "Ahmad Faiz",
+      family = "Muzaki",
+      email = "24611023@students.ac.id",
+      role = "aut"
+    )
+  )
+Description: Provides visual tools for preliminary data-quality diagnosis,
+    including advanced missing-data diagnostics, correlation diagnostics,
+    numerical distribution assessment, and actionable data-quality reporting.
+    This package is an attributed derivative work of the 'visdat' package
+    developed by its original contributors
+    (<https://github.com/ropensci/visdat>). The package extends the original
+    visual data-exploration concepts with additional statistical diagnostics
+    and preprocessing recommendations.
+License: MIT + file LICENSE
+URL: https://github.com/mona910/visdatid,
+    https://github.com/ropensci/visdat
+BugReports: https://github.com/mona910/visdatid/issues
+Depends:
+    R (>= 4.1.0)
+Imports:
+    dplyr,
+    ggplot2,
+    rlang,
+    tibble
+Suggests:
+    covr,
+    knitr,
+    pkgdown,
+    rmarkdown,
+    testthat (>= 3.0.0),
+    visdat
+VignetteBuilder: knitr
+Config/testthat/edition: 3
+Encoding: UTF-8
+LazyData: true
+Roxygen: list(markdown = TRUE)
+Config/roxygen2/version: 8.0.0

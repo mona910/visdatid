@@ -1,0 +1,22 @@
+R CMD check results for visdatid
+Date: 2026-07-14
+
+── R CMD check results ──────────────────────────────────────────────────────────────────────── visdatid 0.1.0 ────
+Duration: 47.7s
+
+0 errors ✔ | 0 warnings ✔ | 0 notes ✔
+
+Test results:
+✔ | F W  S  OK | Context
+⠏ |          0 | correlation_helpers                                                                               ⠹ |         13 | correlation_helpers                                                                               ✔ |         23 | correlation_helpers
+⠏ |          0 | inspect_data                                                                                      ⠸ |         24 | inspect_data                                                                                      ✔ |         29 | inspect_data
+⠏ |          0 | quality_report                                                                                    ⠧ |          8 | quality_report                                                                                    ⠧ |         28 | quality_report                                                                                    ✔ |         33 | quality_report
+⠏ |          0 | utils                                                                                             ✔ |         36 | utils
+⠏ |          0 | vis_cor_adv                                                                                       ⠴ |          6 | vis_cor_adv                                                                                       ⠋ |         11 | vis_cor_adv                                                                                       ⠴ |         16 | vis_cor_adv                                                                                       ⠙ |         32 | vis_cor_adv                                                                                       ✔ |         33 | vis_cor_adv
+⠏ |          0 | vis_distribution                                                                                  ⠸ |          4 | vis_distribution                                                                                  ⠹ |         13 | vis_distribution                                                                                  ✔ |         21 | vis_distribution
+⠏ |          0 | vis_miss_adv                                                                                      ⠧ |          8 | vis_miss_adv                                                                                      ⠋ |         21 | vis_miss_adv                                                                                      ✔ |         34 | vis_miss_adv
+
+══ Results ════════════════════════════════════════════════════════════════════════════════════════════════════════
+Duration: 1.7 s
+
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 209 ]
