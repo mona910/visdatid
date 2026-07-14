@@ -15,6 +15,33 @@
     )
   }
 
+  if (nrow(data) == 0L) {
+    stop(
+      "`data` harus memiliki minimal satu baris.",
+      call. = FALSE
+    )
+  }
+
+  variable_names <- names(data)
+
+  if (
+    is.null(variable_names) ||
+    anyNA(variable_names) ||
+    any(trimws(variable_names) == "")
+  ) {
+    stop(
+      "Seluruh variabel dalam `data` harus memiliki nama.",
+      call. = FALSE
+    )
+  }
+
+  if (anyDuplicated(variable_names) > 0L) {
+    stop(
+      "Nama variabel dalam `data` harus unik.",
+      call. = FALSE
+    )
+  }
+
   invisible(TRUE)
 }
 
@@ -157,10 +184,10 @@
   }
 
   result <- rep(FALSE, length(x))
-  result[is.na(x)] <- NA
-  result[is.infinite(x)] <- TRUE
 
+  # NA, NaN, Inf, dan -Inf tidak dihitung sebagai pencilan IQR.
   finite_values <- is.finite(x)
+  result[!finite_values] <- NA
 
   if (sum(finite_values) < 4L) {
     return(result)
@@ -176,7 +203,9 @@
 
   iqr_value <- quartiles[2] - quartiles[1]
 
-  if (!is.finite(iqr_value) || iqr_value == 0) {
+  # Hanya berhenti apabila IQR tidak dapat dihitung.
+  # IQR = 0 tetap diperiksa.
+  if (!is.finite(iqr_value)) {
     return(result)
   }
 

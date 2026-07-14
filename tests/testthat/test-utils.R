@@ -294,3 +294,74 @@ test_that(".empty_quality_report memiliki struktur yang benar", {
     )
   )
 })
+
+test_that(".validate_data_frame menolak data tanpa baris", {
+  data_test <- data.frame(
+    x = numeric()
+  )
+
+  expect_error(
+    .validate_data_frame(data_test),
+    "minimal satu baris"
+  )
+})
+
+
+test_that(".validate_data_frame menolak nama variabel kosong", {
+  data_test <- data.frame(
+    x = 1:3
+  )
+
+  names(data_test) <- ""
+
+  expect_error(
+    .validate_data_frame(data_test),
+    "harus memiliki nama"
+  )
+})
+
+
+test_that(".validate_data_frame menolak nama variabel duplikat", {
+  data_test <- data.frame(
+    x = 1:3,
+    y = 4:6
+  )
+
+  names(data_test) <- c("nilai", "nilai")
+
+  expect_error(
+    .validate_data_frame(data_test),
+    "harus unik"
+  )
+})
+
+
+test_that("nilai tak hingga tidak dihitung sebagai pencilan IQR", {
+  x <- c(1, 2, 3, 4, Inf, -Inf)
+
+  result <- .detect_outliers_iqr(x)
+
+  expect_false(any(result[1:4]))
+  expect_true(is.na(result[5]))
+  expect_true(is.na(result[6]))
+
+  expect_equal(
+    sum(result, na.rm = TRUE),
+    0
+  )
+})
+
+
+test_that("pencilan tetap terdeteksi ketika IQR sama dengan nol", {
+  x <- c(1, 1, 1, 1, 100)
+
+  result <- .detect_outliers_iqr(x)
+
+  expect_false(any(result[1:4]))
+  expect_true(result[5])
+
+  expect_equal(
+    sum(result, na.rm = TRUE),
+    1
+  )
+})
