@@ -1,0 +1,236 @@
+---
+output: github_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.path = "man/figures/README-",
+  fig.retina = 2,
+  out.width = "100%",
+  message = FALSE,
+  warning = FALSE
+)
+
+devtools::load_all(".")
+```
+
+# visdatid
+
+`visdatid` adalah package R untuk diagnosis awal kualitas data melalui
+visualisasi *missing value*, distribusi numerik, korelasi, serta laporan
+masalah dan rekomendasi prapemrosesan.
+
+Package ini menyediakan empat fungsi utama:
+
+- `vis_miss_adv()` untuk diagnosis dan visualisasi *missing value*;
+- `vis_cor_adv()` untuk visualisasi korelasi beserta signifikansinya;
+- `vis_distribution()` untuk diagnosis distribusi variabel numerik;
+- `quality_report()` untuk menghasilkan laporan masalah kualitas data.
+
+## Attribution
+
+`visdatid` merupakan pengembangan yang mengadopsi dan memperluas konsep
+visualisasi awal dari package
+[`visdat`](https://github.com/ropensci/visdat).
+
+Package asli `visdat` dikembangkan oleh Nicholas Tierney dan para
+kontributornya. `visdatid` tidak dimaksudkan untuk menggantikan `visdat`,
+melainkan menambahkan diagnosis statistik dan rekomendasi awal.
+
+## Installation
+
+Package dapat dipasang langsung dari GitHub:
+
+```r
+install.packages("remotes")
+remotes::install_github("mona910/visdatid")
+```
+
+Setelah terpasang:
+
+```r
+library(visdatid)
+```
+
+# Penggunaan
+
+## Diagnosis missing value dengan `vis_miss_adv()`
+
+Fungsi ini menunjukkan posisi dan persentase *missing value*. Variabel yang
+melewati ambang tertentu dapat ditandai sebagai prioritas pemeriksaan.
+
+```{r vis-miss, fig.width=10, fig.height=6}
+plot_missing <- vis_miss_adv(
+  data = airquality,
+  threshold = 10,
+  sort_by_missing = TRUE,
+  show_labels = TRUE
+)
+
+plot_missing
+```
+
+Ringkasan numeriknya dapat diambil dari atribut `missing_summary`.
+
+```{r tabel-missing}
+ringkasan_missing <- attr(
+  plot_missing,
+  "missing_summary"
+)
+
+knitr::kable(
+  ringkasan_missing,
+  digits = 2,
+  caption = "Ringkasan missing value"
+)
+```
+
+Pada dataset `airquality`, variabel dengan *missing value* terbesar dapat
+langsung diketahui dari grafik dan tabel tersebut.
+
+## Diagnosis distribusi dengan `vis_distribution()`
+
+Fungsi ini menampilkan bentuk distribusi, mean, median, skewness, dan
+pencilan berdasarkan aturan IQR.
+
+```{r vis-distribution, fig.width=10, fig.height=6}
+vis_distribution(
+  data = mtcars,
+  variable = "hp",
+  bins = 12,
+  show_outliers = TRUE
+)
+```
+
+Hasil tersebut dapat digunakan sebagai diagnosis awal sebelum menentukan
+apakah suatu variabel memerlukan transformasi atau pemeriksaan pencilan lebih
+lanjut.
+
+## Diagnosis korelasi dengan `vis_cor_adv()`
+
+Fungsi ini menampilkan koefisien korelasi, signifikansi setelah penyesuaian
+*p-value*, serta penanda untuk korelasi kuat.
+
+```{r vis-correlation, fig.width=10, fig.height=7}
+data_korelasi <- mtcars[
+  ,
+  c("mpg", "disp", "hp", "wt", "qsec", "am")
+]
+
+plot_korelasi <- vis_cor_adv(
+  data = data_korelasi,
+  method = "auto",
+  adjust_method = "BH",
+  alpha = 0.05,
+  strong_threshold = 0.80,
+  cluster = TRUE,
+  show_values = TRUE,
+  show_significance = TRUE,
+  digits = 2
+)
+
+plot_korelasi
+```
+
+Tanda `*` menunjukkan korelasi yang tetap signifikan setelah koreksi
+Benjamini–Hochberg. Garis tebal menunjukkan pasangan dengan nilai absolut
+korelasi minimal 0,80.
+
+Tabel korelasi lengkap dapat diambil dari atribut `correlation_table`.
+
+```{r tabel-korelasi}
+tabel_korelasi <- attr(
+  plot_korelasi,
+  "correlation_table"
+)
+
+pasangan_unik <- tabel_korelasi[
+  as.character(tabel_korelasi$row_variable) <
+    as.character(tabel_korelasi$column_variable),
+  ,
+  drop = FALSE
+]
+
+pasangan_unik <- pasangan_unik[
+  order(
+    abs(pasangan_unik$correlation),
+    decreasing = TRUE
+  ),
+  ,
+  drop = FALSE
+]
+
+knitr::kable(
+  utils::head(pasangan_unik, 8),
+  digits = 3,
+  caption = "Pasangan korelasi utama"
+)
+```
+
+## Laporan kualitas data dengan `quality_report()`
+
+Fungsi ini memeriksa masalah seperti *missing value*, ID duplikat, string
+kosong, variabel konstan, nilai tak hingga, skewness, dan pencilan IQR.
+
+```{r quality-data}
+data_masalah <- data.frame(
+  id = c(1, 2, 2, 4, 5, 6),
+  kelompok = c("A", "B", "B", "", NA, "C"),
+  nilai = c(10, 12, 12, 100, NA, 15),
+  konstan = rep(1, 6)
+)
+
+laporan_kualitas <- quality_report(
+  data = data_masalah,
+  id_col = "id"
+)
+
+knitr::kable(
+  laporan_kualitas,
+  digits = 2,
+  caption = "Laporan kualitas data"
+)
+```
+
+Setiap baris laporan memuat jenis masalah, nilai hasil pemeriksaan, tingkat
+keparahan, dan rekomendasi tindak lanjut.
+
+# Hasil pemeriksaan package
+
+Package telah diperiksa menggunakan `devtools::check()` dengan hasil:
+
+```text
+0 errors
+0 warnings
+1 note
+```
+
+Note yang muncul adalah:
+
+```text
+checking for future file timestamps ...
+unable to verify current time
+```
+
+Note tersebut berkaitan dengan lingkungan sistem dan tidak berasal dari
+fungsi atau source code package.
+
+Pengujian otomatis menghasilkan:
+
+```text
+FAIL 0
+WARN 0
+SKIP 0
+PASS 219
+```
+
+Output lengkap tersedia pada
+[`check_result.txt`](check_result.txt).
+
+# Batas penggunaan
+
+`visdatid` digunakan untuk diagnosis dan rekomendasi awal. Package ini tidak
+melakukan imputasi, transformasi, penghapusan pencilan, atau pembersihan data
+secara otomatis.
